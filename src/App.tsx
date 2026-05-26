@@ -449,7 +449,7 @@ function App({ session }: { session: Session }) {
       </div>
 
       {/* ── DESKTOP DASHBOARD LAYOUT (hidden on mobile) ── */}
-      <div className="hidden lg:grid lg:grid-cols-[460px_1fr] lg:h-screen lg:overflow-hidden bg-[#faf7ef]">
+      <div className="hidden lg:grid lg:grid-cols-[420px_1fr] xl:grid-cols-[460px_1fr] lg:h-screen lg:overflow-hidden bg-[#faf7ef]">
         {/* LEFT COLUMN: CONTROL CONSOLE */}
         <aside className="h-screen overflow-y-auto bg-white border-r-[4px] border-zinc-950 p-8 flex flex-col justify-between select-none relative z-10 shadow-[4px_0_24px_rgba(0,0,0,0.03)]">
           <div>
@@ -579,41 +579,41 @@ function App({ session }: { session: Session }) {
         </aside>
 
         {/* RIGHT COLUMN: THE DASHBOARD COMMAND CENTER */}
-        <main className="h-screen overflow-y-auto p-8 flex flex-col gap-6 relative z-0">
+        <main className="h-screen overflow-y-auto p-6 xl:p-8 flex flex-col gap-5 relative z-0">
           {/* Dynamic Ambient Aura Glow */}
           <div className={`absolute inset-0 pointer-events-none opacity-[0.04] transition-all duration-[800ms] -z-10 ${showcaseDrink === 'monster' ? 'bg-lime-500' : 'bg-red-600'}`} />
           <div className="absolute inset-0 pointer-events-none opacity-[0.025] -z-10"
             style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")' }}
           />
 
-          {/* Top Row: Large Live Ticker Stats */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="ticker-chip p-5 rounded-2xl flex flex-col justify-between">
-              <span className="ticker-label">my mg today</span>
-              <strong className="ticker-value text-4xl mt-2">{stats.todayCaffeineMg}</strong>
+          {/* ─── ROW 1: Stats Overview ─── */}
+          <section className="grid grid-cols-3 gap-4">
+            <div className="rounded-2xl border-[3px] border-zinc-950 bg-white p-5 shadow-[4px_4px_0_#18181b] flex flex-col gap-1">
+              <span className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400">my mg today</span>
+              <strong className="text-3xl xl:text-4xl font-black tracking-[-0.06em] leading-none">{stats.todayCaffeineMg}<span className="text-base text-lime-500 ml-0.5">mg</span></strong>
+              <span className="text-[10px] font-bold text-zinc-400 mt-1">{stats.monsterCans} monster · {stats.dietCokeCans} diet coke</span>
             </div>
-            <div className="ticker-chip ticker-chip-red p-5 rounded-2xl flex flex-col justify-between">
-              <span className="ticker-label">my sleep debt</span>
-              <strong className="ticker-value text-4xl mt-2">{stats.sleepDebtMinutes}m</strong>
+            <div className="rounded-2xl border-[3px] border-zinc-950 bg-red-500 p-5 shadow-[4px_4px_0_#18181b] flex flex-col gap-1 text-white">
+              <span className="text-[10px] font-black uppercase tracking-[0.18em] text-red-200">my sleep debt</span>
+              <strong className="text-3xl xl:text-4xl font-black tracking-[-0.06em] leading-none">{stats.sleepDebtMinutes}<span className="text-base ml-0.5">min</span></strong>
+              <span className="text-[10px] font-bold text-red-200 mt-1">estimated loss tonight</span>
             </div>
-            <div className="ticker-chip ticker-chip-lime p-5 rounded-2xl flex flex-col justify-between">
-              <span className="ticker-label">my chaos score</span>
-              <strong className="ticker-value text-4xl mt-2">{scans.find(s => s.user === normalizedUser)?.score.chaos ?? 0}/10</strong>
+            <div className="rounded-2xl border-[3px] border-zinc-950 bg-lime-300 p-5 shadow-[4px_4px_0_#18181b] flex flex-col gap-1">
+              <span className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-700">my chaos score</span>
+              <strong className="text-3xl xl:text-4xl font-black tracking-[-0.06em] leading-none">{scans.find(s => s.user === normalizedUser)?.score.chaos ?? 0}<span className="text-base text-zinc-600 ml-0.5">/10</span></strong>
+              <span className="text-[10px] font-bold text-zinc-600 mt-1">current chaos level</span>
             </div>
-          </div>
+          </section>
 
-          {/* Main Grid Section */}
-          <div className="grid grid-cols-[1fr_1.1fr] gap-6 items-start">
-            {/* Left Col: Aura Deck + Chaos Index Chart */}
-            <div className="flex flex-col gap-6">
-              {/* Aura Deck Frame */}
-              <div className="rounded-[2rem] border-4 border-zinc-950 bg-white p-6 shadow-[10px_10px_0_#18181b] flex flex-col items-center justify-center relative min-h-[440px] overflow-hidden">
-                <p className="absolute top-4 left-4 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">interactive aura deck</p>
-                
-                {/* Embedded dynamic card stack */}
-                <div className="scale-95 translate-y-3">
+          {/* ─── ROW 2: Main Content Grid ─── */}
+          <section className="grid grid-cols-12 gap-5 flex-1 min-h-0">
+            {/* Left: Aura Deck + Chaos Timeline stacked */}
+            <div className="col-span-5 flex flex-col gap-5 min-h-0">
+              {/* Aura Deck */}
+              <div className="rounded-[1.8rem] border-[3px] border-zinc-950 bg-white p-5 shadow-[6px_6px_0_#18181b] flex flex-col items-center justify-center relative flex-1 min-h-[360px] overflow-hidden">
+                <p className="absolute top-4 left-5 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400">interactive aura deck</p>
+                <div className="scale-[0.85] xl:scale-90">
                   <div className="hero-can-stack">
-                    {/* Diet Coke Card */}
                     <div
                       className={`hero-can-card hero-can-card-diet-coke transition-all duration-300 ${showcaseDrink === 'diet-coke' ? 'hero-can-card-front' : 'hero-can-card-back'}`}
                       onClick={() => handleCardClick('diet-coke')}
@@ -622,7 +622,6 @@ function App({ session }: { session: Session }) {
                       <span className="hcc-brand">Diet Coke</span>
                       <span className="hcc-mg">46mg</span>
                     </div>
-                    {/* Monster Card */}
                     <div
                       className={`hero-can-card hero-can-card-monster transition-all duration-300 ${showcaseDrink === 'monster' ? 'hero-can-card-front' : 'hero-can-card-back'}`}
                       onClick={() => handleCardClick('monster')}
@@ -632,20 +631,18 @@ function App({ session }: { session: Session }) {
                       <span className="hcc-mg">160mg</span>
                       {showcaseDrink === 'monster' && <div className="hcc-glow" />}
                     </div>
-                    {/* Floating badge */}
                     <div className="hero-float-badge">
                       <span>⚡</span> peak aura
                     </div>
-                    {/* Chaos counter */}
                     <div className="hero-chaos-badge">chaos {scans.find(s => s.user === normalizedUser)?.score.chaos ?? 0}/10</div>
                   </div>
                 </div>
               </div>
 
-              {/* Chaos Index Graph */}
-              <div className="rounded-[1.6rem] border-4 border-zinc-950 bg-white p-5 shadow-[6px_6px_0_#18181b]">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">my chaos timeline</p>
-                <div className="mt-4 flex items-end gap-3">
+              {/* Chaos Timeline */}
+              <div className="rounded-2xl border-[3px] border-zinc-950 bg-white p-5 shadow-[4px_4px_0_#18181b]">
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400">my chaos timeline</p>
+                <div className="mt-3 flex items-end gap-3">
                   <div className="chaos-bar-wrap flex-1">
                     {scans.filter(s => s.user === normalizedUser).slice(0, 10).map((scan) => (
                       <div
@@ -657,7 +654,7 @@ function App({ session }: { session: Session }) {
                     ))}
                   </div>
                   <div className="text-right shrink-0">
-                    <p className="text-3xl font-black tracking-[-0.06em] leading-none">
+                    <p className="text-2xl font-black tracking-[-0.06em] leading-none">
                       {scans.find(s => s.user === normalizedUser)?.score.chaos ?? 0}
                     </p>
                     <p className="text-[10px] font-black text-zinc-400 uppercase">chaos/10</p>
@@ -666,21 +663,21 @@ function App({ session }: { session: Session }) {
               </div>
             </div>
 
-            {/* Right Col: Scoreboard Leaderboard */}
-            <div className="rounded-[2rem] border-4 border-zinc-950 bg-lime-300 p-6 shadow-[10px_10px_0_#18181b] min-h-[550px] flex flex-col justify-between">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-900">fridge dashboard</p>
-                <h2 className="text-4xl sm:text-5xl font-black uppercase leading-[0.82] tracking-[-0.07em] text-zinc-950 mt-1">top fridge</h2>
+            {/* Right: Leaderboard */}
+            <div className="col-span-7 rounded-[1.8rem] border-[3px] border-zinc-950 bg-lime-300 p-5 xl:p-6 shadow-[6px_6px_0_#18181b] flex flex-col justify-between min-h-0 overflow-hidden">
+              <div className="flex-1 min-h-0 flex flex-col">
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-800">fridge dashboard</p>
+                <h2 className="text-3xl xl:text-4xl font-black uppercase leading-[0.85] tracking-[-0.06em] text-zinc-950 mt-1">top fridge</h2>
 
-                <div className="mt-5 flex flex-col gap-3">
-                  {leaderboard.slice(0, 6).map((entry, index) => (
+                <div className="mt-4 flex flex-col gap-2.5 flex-1 overflow-y-auto min-h-0 pr-1">
+                  {leaderboard.slice(0, 8).map((entry, index) => (
                     <div
                       key={entry.user}
-                      className={`rounded-2xl border-3 border-zinc-950 bg-white p-3 flex items-center justify-between shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[3px_3px_0_#18181b]`}
+                      className="rounded-xl border-2 border-zinc-950 bg-white p-2.5 xl:p-3 flex items-center justify-between shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[3px_3px_0_#18181b] shrink-0"
                     >
-                      <div className="flex items-center gap-3">
-                        <span className="text-base font-black w-6 text-zinc-400 text-center">#{index + 1}</span>
-                        <div className="size-8 rounded-full border-2 border-zinc-950 bg-zinc-950 text-white text-[10px] font-black flex items-center justify-center uppercase">
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-sm font-black w-5 text-zinc-400 text-center">#{index + 1}</span>
+                        <div className="size-7 rounded-full border-2 border-zinc-950 bg-zinc-950 text-white text-[9px] font-black flex items-center justify-center uppercase">
                           {entry.user.slice(0, 2)}
                         </div>
                         <div>
@@ -691,7 +688,7 @@ function App({ session }: { session: Session }) {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-base font-black text-zinc-950 leading-none">{entry.caffeineMg}mg</p>
+                        <p className="text-sm font-black text-zinc-950 leading-none">{entry.caffeineMg}mg</p>
                         <p className="text-[9px] font-black uppercase text-zinc-400 mt-0.5">{entry.cans} cans</p>
                       </div>
                     </div>
@@ -699,46 +696,45 @@ function App({ session }: { session: Session }) {
                 </div>
               </div>
 
-              {/* Leaderboard statistics footer */}
-              <div className="mt-6 border-t-2 border-zinc-950 pt-4 flex items-center justify-between text-xs font-black uppercase text-zinc-950">
+              <div className="mt-4 border-t-2 border-zinc-950 pt-3 flex items-center justify-between text-[10px] font-black uppercase text-zinc-950">
                 <span>athletes: {leaderboard.length}</span>
                 <span>fridge total scans: {scans.length}</span>
               </div>
             </div>
-          </div>
+          </section>
 
-          {/* Bottom Feed: Live Action Damage Log */}
-          <div className="rounded-[1.6rem] border-4 border-zinc-950 bg-white p-5 shadow-[6px_6px_0_#18181b]">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-3">live damage feed</p>
-            <div className="flex flex-col gap-2 max-h-40 overflow-y-auto pr-2">
+          {/* ─── ROW 3: Live Feed ─── */}
+          <section className="rounded-2xl border-[3px] border-zinc-950 bg-white p-5 shadow-[4px_4px_0_#18181b]">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400 mb-3">live damage feed</p>
+            <div className="flex flex-col gap-1 max-h-36 overflow-y-auto pr-2">
               {scansLoading ? feedSkeleton : scans.length === 0 ? (
                 <p className="text-xs text-zinc-400 italic text-center py-4">No damage logged yet. Fill the console!</p>
               ) : (
-                scans.map((scan) => (
-                  <div key={scan.id} className="flex items-center justify-between py-2 border-b border-zinc-100 last:border-0 text-xs">
+                scans.slice(0, 20).map((scan) => (
+                  <div key={scan.id} className="flex items-center justify-between py-1.5 border-b border-zinc-100 last:border-0 text-xs">
                     <div className="flex items-center gap-2">
-                      <span className={`size-2.5 rounded-full border border-zinc-950 ${scan.can.brand === 'monster' ? 'bg-lime-300' : 'bg-red-500'}`} />
+                      <span className={`size-2 rounded-full ${scan.can.brand === 'monster' ? 'bg-lime-400' : 'bg-red-500'}`} />
                       <span className="font-black text-zinc-950">@{scan.user}</span>
-                      <span className="text-zinc-500">logged {scan.can.label} ({scan.can.ml}ml)</span>
+                      <span className="text-zinc-400">logged {scan.can.label}</span>
                     </div>
                     <div className="flex items-center gap-3 text-zinc-500 font-bold">
                       <span className={scan.can.brand === 'monster' ? 'text-lime-600' : 'text-red-500'}>+{scan.can.caffeineMg}mg</span>
                       <span className="text-[10px] opacity-50 font-normal">
-                        {new Date(scan.scannedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        {new Date(scan.scannedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
                   </div>
                 ))
               )}
             </div>
-          </div>
+          </section>
 
-          {/* Desktop Footer */}
-          <footer className="border-t-[3px] border-zinc-950 bg-white p-5 mt-4 rounded-[1.6rem] shadow-[6px_6px_0_#18181b] flex items-center justify-between gap-4">
-            <p className="text-xs font-black uppercase tracking-[0.12em] text-zinc-950">
+          {/* ─── Footer ─── */}
+          <footer className="rounded-2xl border-[3px] border-zinc-950 bg-white px-5 py-4 shadow-[4px_4px_0_#18181b] flex items-center justify-between gap-4 shrink-0">
+            <p className="text-[10px] font-black uppercase tracking-[0.12em] text-zinc-950">
               © {new Date().getFullYear()} can damage. all rights stack.
             </p>
-            <div className="flex gap-4 text-xs font-black uppercase tracking-[0.16em]">
+            <div className="flex gap-4 text-[10px] font-black uppercase tracking-[0.14em]">
               <a href="#" className="hover:text-red-500 transition-colors">instagram</a>
               <span className="text-zinc-300">•</span>
               <a href="#" className="hover:text-lime-500 transition-colors">linkedin</a>
