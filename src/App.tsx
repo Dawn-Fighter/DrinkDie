@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import {
   buildLeaderboard,
+  buildScanInsertRows,
   calculateStats,
   parseCanQr,
   scoreScan,
@@ -32,7 +33,8 @@ function rowToRecord(row: ScanRow): ScanRecord {
 function App({ session }: { session: Session }) {
   const defaultHandle = session.user.user_metadata?.full_name?.split(' ')[0]?.toLowerCase() ?? session.user.email?.split('@')[0] ?? 'you'
   const [user, setUser] = useState(defaultHandle)
-  const [drink, setDrink] = useState<DrinkBrand>('monster')
+  const [intakeDrink, setIntakeDrink] = useState<DrinkBrand>('monster')
+  const [showcaseDrink, setShowcaseDrink] = useState<DrinkBrand>('monster')
   const [quantity, setQuantity] = useState(1)
   const [scans, setScans] = useState<ScanRecord[]>([])
   const [scansLoading, setScansLoading] = useState(true)
@@ -78,10 +80,10 @@ function App({ session }: { session: Session }) {
   const leaderboard = useMemo(() => buildLeaderboard(scans), [scans])
   const podium = leaderboard.slice(0, 3)
 
-  // Auto-rotate hero cards — no `drink` dep to avoid restart loop
+  // Auto-rotate showcase cards without changing the selected intake can.
   useEffect(() => {
     const timer = setInterval(() => {
-      setDrink((current) => (current === 'monster' ? 'diet-coke' : 'monster'))
+      setShowcaseDrink((current) => (current === 'monster' ? 'diet-coke' : 'monster'))
     }, 3000)
     return () => clearInterval(timer)
   }, [])
@@ -102,29 +104,26 @@ function App({ session }: { session: Session }) {
     setLogging(true)
     setLogError(null)
 
-    const payload = drink === 'monster' ? 'CAN:MONSTER:500' : 'CAN:DIET_COKE:330'
+    const payload = intakeDrink === 'monster' ? 'CAN:MONSTER:500' : 'CAN:DIET_COKE:330'
     const can = parseCanQr(payload)
     const score = scoreScan(can)
     const now = new Date().toISOString()
     const handle = user.trim() || defaultHandle
 
-    const rows = Array.from({ length: quantity }, (_, i) => ({
-      id: `${crypto.randomUUID()}-${i}`,
-      user_id: session.user.id,
+    const rows = buildScanInsertRows({
+      can,
+      score,
+      quantity,
+      userId: session.user.id,
       handle,
-      scanned_at: now,
-      brand: can.brand as string,
-      label: can.label,
-      ml: can.ml,
-      caffeine_mg: can.caffeineMg,
-      chaos: score.chaos,
-      sleep_debt: score.sleepDebtMinutes,
-    }))
+      scannedAt: now,
+      createId: () => crypto.randomUUID(),
+    })
 
     const { error } = await supabase.from('scans').insert(rows)
     setLogging(false)
     if (error) {
-      setLogError(error.message.includes('rate_limit') ? 'slow down — max 20 cans per minute.' : 'failed to log. try again.')
+      setLogError(error.message.includes('rate_limit') ? 'slow down - max 20 cans per minute.' : error.message)
     } else {
       setLastLogged(can.brand)
       setLogStatus(`${quantity} ${can.label.toLowerCase()} logged. +${can.caffeineMg * quantity}mg aura.`)
@@ -132,16 +131,16 @@ function App({ session }: { session: Session }) {
   }
 
   function handleCardClick(brand: DrinkBrand) {
-    setDrink(drink === brand ? (brand === 'monster' ? 'diet-coke' : 'monster') : brand)
+    setShowcaseDrink(showcaseDrink === brand ? (brand === 'monster' ? 'diet-coke' : 'monster') : brand)
   }
 
-  const selectedCan = parseCanQr(drink === 'monster' ? 'CAN:MONSTER:500' : 'CAN:DIET_COKE:330')
+  const selectedCan = parseCanQr(intakeDrink === 'monster' ? 'CAN:MONSTER:500' : 'CAN:DIET_COKE:330')
   const selectedTotal = selectedCan.caffeineMg * quantity
 
   // Shared "log the damage" button renderer to avoid duplication
   const logBtn = (extraClass = '') => (
     <button
-      className={`rounded-2xl border-2 border-zinc-950 font-black uppercase tracking-[0.18em] text-zinc-950 transition active:translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${drink === 'monster' ? 'bg-lime-300 shadow-[0_7px_0_#18181b]' : 'bg-red-500 text-white shadow-[0_7px_0_#18181b]'} ${extraClass}`}
+      className={`rounded-2xl border-2 border-zinc-950 font-black uppercase tracking-[0.18em] text-zinc-950 transition active:translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${intakeDrink === 'monster' ? 'bg-lime-300 shadow-[0_7px_0_#18181b]' : 'bg-red-500 text-white shadow-[0_7px_0_#18181b]'} ${extraClass}`}
       type="button"
       onClick={logDrink}
       disabled={logging}
@@ -229,7 +228,7 @@ function App({ session }: { session: Session }) {
                   <div className="hero-can-stack">
                     {/* Diet Coke Card */}
                     <div
-                      className={`hero-can-card hero-can-card-diet-coke transition-all duration-300 ${drink === 'diet-coke' ? 'hero-can-card-front' : 'hero-can-card-back'}`}
+                      className={`hero-can-card hero-can-card-diet-coke transition-all duration-300 ${showcaseDrink === 'diet-coke' ? 'hero-can-card-front' : 'hero-can-card-back'}`}
                       onClick={() => handleCardClick('diet-coke')}
                     >
                       <span className="hcc-letter">DC</span>
@@ -238,13 +237,13 @@ function App({ session }: { session: Session }) {
                     </div>
                     {/* Monster Card */}
                     <div
-                      className={`hero-can-card hero-can-card-monster transition-all duration-300 ${drink === 'monster' ? 'hero-can-card-front' : 'hero-can-card-back'}`}
+                      className={`hero-can-card hero-can-card-monster transition-all duration-300 ${showcaseDrink === 'monster' ? 'hero-can-card-front' : 'hero-can-card-back'}`}
                       onClick={() => handleCardClick('monster')}
                     >
                       <span className="hcc-letter">M</span>
                       <span className="hcc-brand">Monster</span>
                       <span className="hcc-mg">160mg</span>
-                      {drink === 'monster' && <div className="hcc-glow" />}
+                      {showcaseDrink === 'monster' && <div className="hcc-glow" />}
                     </div>
                     {/* Floating badge */}
                     <div className="hero-float-badge">
@@ -290,20 +289,20 @@ function App({ session }: { session: Session }) {
                     <p className="text-xs font-black uppercase tracking-[0.18em] text-red-500">manual intake</p>
                     <h2 className="mt-1 text-4xl font-black uppercase tracking-[-0.06em] sm:text-6xl">can drop</h2>
                   </div>
-                  <span className={`rounded-full px-3 py-2 text-[11px] font-black uppercase tracking-[0.08em] ${drink === 'monster' ? 'bg-lime-300 text-zinc-950' : 'bg-red-500 text-white'}`}>
+                  <span className={`rounded-full px-3 py-2 text-[11px] font-black uppercase tracking-[0.08em] ${intakeDrink === 'monster' ? 'bg-lime-300 text-zinc-950' : 'bg-red-500 text-white'}`}>
                     {selectedCan.caffeineMg}mg
                   </span>
                 </div>
 
-                <div className={`can-drop-card my-4 overflow-hidden rounded-[1.55rem] border-2 border-zinc-950 p-4 text-white sm:my-5 sm:p-5 ${drink === 'monster' ? 'bg-zinc-950' : 'bg-red-500'}`}>
+                <div className={`can-drop-card my-4 overflow-hidden rounded-[1.55rem] border-2 border-zinc-950 p-4 text-white sm:my-5 sm:p-5 ${intakeDrink === 'monster' ? 'bg-zinc-950' : 'bg-red-500'}`}>
                   <div className="flex items-center justify-between gap-3">
                     <span className="rounded-full bg-white px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.16em] text-zinc-950">@{normalizedUser}</span>
                     <span className="rounded-full border border-white/25 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.16em]">{quantity}x can</span>
                   </div>
 
                   <div className="grid min-h-64 place-items-center py-5">
-                    <div className={`can-token ${lastLogged === drink ? 'can-token-pop' : ''} ${drink === 'monster' ? 'monster-token' : 'diet-token'}`}>
-                      <span>{drink === 'monster' ? 'M' : 'DC'}</span>
+                    <div className={`can-token ${lastLogged === intakeDrink ? 'can-token-pop' : ''} ${intakeDrink === 'monster' ? 'monster-token' : 'diet-token'}`}>
+                      <span>{intakeDrink === 'monster' ? 'M' : 'DC'}</span>
                       <strong>{selectedCan.label}</strong>
                       <small>{selectedCan.caffeineMg}mg each</small>
                     </div>
@@ -333,16 +332,16 @@ function App({ session }: { session: Session }) {
 
                   <div className="grid grid-cols-2 gap-2">
                     <button
-                      className={`h-14 rounded-2xl border-2 border-zinc-950 text-xs font-black uppercase tracking-[0.14em] transition active:translate-y-0.5 ${drink === 'monster' ? 'bg-lime-300 text-zinc-950 shadow-[0_5px_0_#18181b]' : 'bg-white text-zinc-500'}`}
+                      className={`h-14 rounded-2xl border-2 border-zinc-950 text-xs font-black uppercase tracking-[0.14em] transition active:translate-y-0.5 ${intakeDrink === 'monster' ? 'bg-lime-300 text-zinc-950 shadow-[0_5px_0_#18181b]' : 'bg-white text-zinc-500'}`}
                       type="button"
-                      onClick={() => setDrink('monster')}
+                      onClick={() => setIntakeDrink('monster')}
                     >
                       Monster
                     </button>
                     <button
-                      className={`h-14 rounded-2xl border-2 border-zinc-950 text-xs font-black uppercase tracking-[0.14em] transition active:translate-y-0.5 ${drink === 'diet-coke' ? 'bg-red-500 text-white shadow-[0_5px_0_#18181b]' : 'bg-white text-zinc-500'}`}
+                      className={`h-14 rounded-2xl border-2 border-zinc-950 text-xs font-black uppercase tracking-[0.14em] transition active:translate-y-0.5 ${intakeDrink === 'diet-coke' ? 'bg-red-500 text-white shadow-[0_5px_0_#18181b]' : 'bg-white text-zinc-500'}`}
                       type="button"
-                      onClick={() => setDrink('diet-coke')}
+                      onClick={() => setIntakeDrink('diet-coke')}
                     >
                       Diet Coke
                     </button>
@@ -480,20 +479,20 @@ function App({ session }: { session: Session }) {
                   <p className="text-[10px] font-black uppercase tracking-[0.18em] text-red-500">manual intake</p>
                   <h2 className="text-2xl font-black uppercase tracking-[-0.04em] text-zinc-950 mt-0.5">can drop</h2>
                 </div>
-                <span className={`rounded-full px-2.5 py-1.5 text-[10px] font-black uppercase tracking-[0.08em] ${drink === 'monster' ? 'bg-lime-300 text-zinc-950' : 'bg-red-500 text-white'}`}>
+                <span className={`rounded-full px-2.5 py-1.5 text-[10px] font-black uppercase tracking-[0.08em] ${intakeDrink === 'monster' ? 'bg-lime-300 text-zinc-950' : 'bg-red-500 text-white'}`}>
                   {selectedCan.caffeineMg}mg
                 </span>
               </div>
 
-              <div className={`can-drop-card my-4 overflow-hidden rounded-2xl border-2 border-zinc-950 p-4 text-white ${drink === 'monster' ? 'bg-zinc-950' : 'bg-red-500'}`}>
+              <div className={`can-drop-card my-4 overflow-hidden rounded-2xl border-2 border-zinc-950 p-4 text-white ${intakeDrink === 'monster' ? 'bg-zinc-950' : 'bg-red-500'}`}>
                 <div className="flex items-center justify-between gap-3">
                   <span className="rounded-full bg-white px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-zinc-950">@{normalizedUser}</span>
                   <span className="rounded-full border border-white/25 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.16em]">{quantity}x can</span>
                 </div>
 
                 <div className="grid min-h-40 place-items-center py-4">
-                  <div className={`can-token ${lastLogged === drink ? 'can-token-pop' : ''} ${drink === 'monster' ? 'monster-token' : 'diet-token'} scale-90`}>
-                    <span>{drink === 'monster' ? 'M' : 'DC'}</span>
+                  <div className={`can-token ${lastLogged === intakeDrink ? 'can-token-pop' : ''} ${intakeDrink === 'monster' ? 'monster-token' : 'diet-token'} scale-90`}>
+                    <span>{intakeDrink === 'monster' ? 'M' : 'DC'}</span>
                     <strong>{selectedCan.label}</strong>
                     <small>{selectedCan.caffeineMg}mg</small>
                   </div>
@@ -523,16 +522,16 @@ function App({ session }: { session: Session }) {
 
                 <div className="grid grid-cols-2 gap-2">
                   <button
-                    className={`h-11 rounded-xl border-2 border-zinc-950 text-[10px] font-black uppercase tracking-[0.14em] transition active:translate-y-0.5 ${drink === 'monster' ? 'bg-lime-300 text-zinc-950 shadow-[0_3px_0_#18181b]' : 'bg-white text-zinc-500'}`}
+                    className={`h-11 rounded-xl border-2 border-zinc-950 text-[10px] font-black uppercase tracking-[0.14em] transition active:translate-y-0.5 ${intakeDrink === 'monster' ? 'bg-lime-300 text-zinc-950 shadow-[0_3px_0_#18181b]' : 'bg-white text-zinc-500'}`}
                     type="button"
-                    onClick={() => setDrink('monster')}
+                    onClick={() => setIntakeDrink('monster')}
                   >
                     Monster
                   </button>
                   <button
-                    className={`h-11 rounded-xl border-2 border-zinc-950 text-[10px] font-black uppercase tracking-[0.14em] transition active:translate-y-0.5 ${drink === 'diet-coke' ? 'bg-red-500 text-white shadow-[0_3px_0_#18181b]' : 'bg-white text-zinc-500'}`}
+                    className={`h-11 rounded-xl border-2 border-zinc-950 text-[10px] font-black uppercase tracking-[0.14em] transition active:translate-y-0.5 ${intakeDrink === 'diet-coke' ? 'bg-red-500 text-white shadow-[0_3px_0_#18181b]' : 'bg-white text-zinc-500'}`}
                     type="button"
-                    onClick={() => setDrink('diet-coke')}
+                    onClick={() => setIntakeDrink('diet-coke')}
                   >
                     Diet Coke
                   </button>
@@ -582,7 +581,7 @@ function App({ session }: { session: Session }) {
         {/* RIGHT COLUMN: THE DASHBOARD COMMAND CENTER */}
         <main className="h-screen overflow-y-auto p-8 flex flex-col gap-6 relative z-0">
           {/* Dynamic Ambient Aura Glow */}
-          <div className={`absolute inset-0 pointer-events-none opacity-[0.04] transition-all duration-[800ms] -z-10 ${drink === 'monster' ? 'bg-lime-500' : 'bg-red-600'}`} />
+          <div className={`absolute inset-0 pointer-events-none opacity-[0.04] transition-all duration-[800ms] -z-10 ${showcaseDrink === 'monster' ? 'bg-lime-500' : 'bg-red-600'}`} />
           <div className="absolute inset-0 pointer-events-none opacity-[0.025] -z-10"
             style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")' }}
           />
@@ -616,7 +615,7 @@ function App({ session }: { session: Session }) {
                   <div className="hero-can-stack">
                     {/* Diet Coke Card */}
                     <div
-                      className={`hero-can-card hero-can-card-diet-coke transition-all duration-300 ${drink === 'diet-coke' ? 'hero-can-card-front' : 'hero-can-card-back'}`}
+                      className={`hero-can-card hero-can-card-diet-coke transition-all duration-300 ${showcaseDrink === 'diet-coke' ? 'hero-can-card-front' : 'hero-can-card-back'}`}
                       onClick={() => handleCardClick('diet-coke')}
                     >
                       <span className="hcc-letter">DC</span>
@@ -625,13 +624,13 @@ function App({ session }: { session: Session }) {
                     </div>
                     {/* Monster Card */}
                     <div
-                      className={`hero-can-card hero-can-card-monster transition-all duration-300 ${drink === 'monster' ? 'hero-can-card-front' : 'hero-can-card-back'}`}
+                      className={`hero-can-card hero-can-card-monster transition-all duration-300 ${showcaseDrink === 'monster' ? 'hero-can-card-front' : 'hero-can-card-back'}`}
                       onClick={() => handleCardClick('monster')}
                     >
                       <span className="hcc-letter">M</span>
                       <span className="hcc-brand">Monster</span>
                       <span className="hcc-mg">160mg</span>
-                      {drink === 'monster' && <div className="hcc-glow" />}
+                      {showcaseDrink === 'monster' && <div className="hcc-glow" />}
                     </div>
                     {/* Floating badge */}
                     <div className="hero-float-badge">

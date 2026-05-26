@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   buildLeaderboard,
+  buildScanInsertRows,
   calculateStats,
   getAutoDetectedQr,
   parseCanQr,
@@ -39,9 +40,44 @@ describe('scan scoring', () => {
     const diet = scoreScan(parseCanQr('CAN:DIET_COKE:330'))
     const monster = scoreScan(parseCanQr('CAN:MONSTER:500'))
 
-    expect(diet.chaos).toBe(34)
-    expect(monster.chaos).toBe(100)
+    expect(diet.chaos).toBe(3)
+    expect(monster.chaos).toBe(10)
     expect(monster.sleepDebtMinutes).toBeGreaterThan(diet.sleepDebtMinutes)
+  })
+})
+
+describe('scan insert rows', () => {
+  it('creates one valid UUID-style id per logged can without suffixes', () => {
+    const can = parseCanQr('CAN:DIET_COKE:330')
+    const score = scoreScan(can)
+    const ids = [
+      '11111111-1111-4111-8111-111111111111',
+      '22222222-2222-4222-8222-222222222222',
+    ]
+
+    const rows = buildScanInsertRows({
+      can,
+      score,
+      quantity: 2,
+      userId: 'user-1',
+      handle: 'chethas',
+      scannedAt: '2026-05-26T08:00:00.000Z',
+      createId: () => ids.shift()!,
+    })
+
+    expect(rows).toHaveLength(2)
+    expect(rows.map((row) => row.id)).toEqual([
+      '11111111-1111-4111-8111-111111111111',
+      '22222222-2222-4222-8222-222222222222',
+    ])
+    expect(rows[0]).toMatchObject({
+      user_id: 'user-1',
+      handle: 'chethas',
+      scanned_at: '2026-05-26T08:00:00.000Z',
+      brand: 'diet-coke',
+      caffeine_mg: 46,
+      chaos: 3,
+    })
   })
 })
 

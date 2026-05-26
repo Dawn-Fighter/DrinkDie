@@ -21,6 +21,19 @@ export type ScanRecord = {
   score: ScanScore
 }
 
+export type ScanInsertRow = {
+  id: string
+  user_id: string
+  handle: string
+  scanned_at: string
+  brand: string
+  label: string
+  ml: number
+  caffeine_mg: number
+  chaos: number
+  sleep_debt: number
+}
+
 export type DashboardStats = {
   todayCaffeineMg: number
   todayCans: number
@@ -102,6 +115,37 @@ export function scoreScan(can: CanInfo): ScanScore {
     chaos: Math.min(10, Math.round((can.caffeineMg / 160) * 10)),
     sleepDebtMinutes: Math.round(can.caffeineMg / 2),
   }
+}
+
+export function buildScanInsertRows({
+  can,
+  score,
+  quantity,
+  userId,
+  handle,
+  scannedAt,
+  createId,
+}: {
+  can: CanInfo
+  score: ScanScore
+  quantity: number
+  userId: string
+  handle: string
+  scannedAt: string
+  createId: () => string
+}): ScanInsertRow[] {
+  return Array.from({ length: quantity }, () => ({
+    id: createId(),
+    user_id: userId,
+    handle,
+    scanned_at: scannedAt,
+    brand: can.brand as string,
+    label: can.label,
+    ml: can.ml,
+    caffeine_mg: can.caffeineMg,
+    chaos: score.chaos,
+    sleep_debt: score.sleepDebtMinutes,
+  }))
 }
 
 /** Personal stats for the current user */
