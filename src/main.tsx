@@ -10,12 +10,24 @@ function Root() {
   const [session, setSession] = useState<Session | null | undefined>(undefined)
 
   useEffect(() => {
-    // Timeout fallback in case getSession hangs (e.g. key issues)
+    const params = new URLSearchParams(window.location.search)
+    const code = params.get('code')
+
+    if (code) {
+      // PKCE: exchange the code for a session
+      supabase.auth.exchangeCodeForSession(code).then(({ data }) => {
+        window.history.replaceState(null, '', window.location.pathname)
+        setSession(data.session)
+      })
+      return
+    }
+
     const timeout = setTimeout(() => setSession(null), 3000)
     supabase.auth.getSession().then(({ data }) => {
       clearTimeout(timeout)
       setSession(data.session)
     })
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s)
       if (event === 'SIGNED_IN' && window.location.hash) {
