@@ -10,8 +10,16 @@ function Root() {
   const [session, setSession] = useState<Session | null | undefined>(undefined)
 
   useEffect(() => {
+    // Handle OAuth callback hash (#access_token=...) or PKCE code
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => setSession(s))
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
+      setSession(s)
+      // Clear the URL hash after OAuth callback so it doesn't linger
+      if (event === 'SIGNED_IN' && window.location.hash) {
+        window.history.replaceState(null, '', window.location.pathname)
+      }
+    })
     return () => subscription.unsubscribe()
   }, [])
 
