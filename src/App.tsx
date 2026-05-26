@@ -462,7 +462,7 @@ function App({ session }: { session: Session }) {
             </div>
 
             {/* Giant stacked headline */}
-            <h1 className="hero-headline text-5xl sm:text-6xl font-black uppercase tracking-[-0.05em] leading-[0.82] text-zinc-950">
+            <h1 className="desktop-hero-headline text-zinc-950">
               drink<br />
               <span className="text-red-500">cans.</span><br />
               farm<br />

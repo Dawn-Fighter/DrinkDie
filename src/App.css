@@ -106,6 +106,21 @@
   font-size: clamp(4.5rem, 20vw, 13rem);
 }
 
+.desktop-hero-headline {
+  margin: 0;
+  font-size: 6.7rem;
+  font-weight: 900;
+  line-height: 0.82;
+  letter-spacing: -0.065em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 1280px) {
+  .desktop-hero-headline {
+    font-size: 5.7rem;
+  }
+}
+
 .hero-word {
   display: block;
   animation: heroWordReveal 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
