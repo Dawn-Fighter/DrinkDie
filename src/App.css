@@ -841,7 +841,9 @@
 
 .ticker {
   display: flex;
+  width: 112vw;
   min-height: 64px;
+  margin-left: -6vw;
   align-items: center;
   justify-content: flex-start;
   padding: 0;
@@ -864,6 +866,7 @@
 .ticker-track {
   display: flex;
   width: max-content;
+  min-width: max-content;
   align-items: center;
   animation: tickerRoll 18s linear infinite;
   will-change: transform;
@@ -871,9 +874,16 @@
 
 .ticker-group {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   gap: 32px;
   padding: 0 18px;
+}
+
+.ticker-group span {
+  display: inline-flex;
+  align-items: center;
+  gap: 32px;
 }
 
 @keyframes tickerRoll {

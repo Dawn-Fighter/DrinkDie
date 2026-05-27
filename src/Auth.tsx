@@ -4,6 +4,7 @@ import { supabase } from './supabase'
 export default function Auth() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const tickerItems = ['Log Your Can Every Day', 'Make Sleep Nervous', 'Climb The Fridge', 'Farm The Aura']
 
   async function signInWithGoogle() {
     setLoading(true)
@@ -83,26 +84,13 @@ export default function Auth() {
 
         <div className="ticker" aria-hidden="true">
           <div className="ticker-track">
-            <div className="ticker-group">
-              <span>Log Your Can Every Day</span>
-              <b>*</b>
-              <span>Make Sleep Nervous</span>
-              <b>*</b>
-              <span>Climb The Fridge</span>
-              <b>*</b>
-              <span>Farm The Aura</span>
-              <b>*</b>
-            </div>
-            <div className="ticker-group" aria-hidden="true">
-              <span>Log Your Can Every Day</span>
-              <b>*</b>
-              <span>Make Sleep Nervous</span>
-              <b>*</b>
-              <span>Climb The Fridge</span>
-              <b>*</b>
-              <span>Farm The Aura</span>
-              <b>*</b>
-            </div>
+            {Array.from({ length: 4 }).map((_, group) => (
+              <div key={group} className="ticker-group">
+                {tickerItems.map((item) => (
+                  <span key={`${group}-${item}`}>{item}<b>*</b></span>
+                ))}
+              </div>
+            ))}
           </div>
         </div>
 

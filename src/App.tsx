@@ -135,6 +135,7 @@ function App({ session }: { session: Session }) {
   const selectedTotal = selectedCan.caffeineMg * quantity
   const podiumOrder = [leaderboard[1], leaderboard[0], leaderboard[2]]
   const feedItems = scans.slice(0, 10)
+  const tickerItems = ['Log Your Can Every Day', 'Make Sleep Nervous', 'Climb The Fridge', 'Farm The Aura']
 
   const logButtonClass = `primary-button log-button ${intakeDrink === 'monster' ? 'log-button-green' : 'log-button-red'}`
   const mobileLogButtonClass = `rounded-2xl border-2 border-zinc-950 font-black uppercase tracking-[0.18em] transition active:translate-y-1 disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2 h-16 w-full text-sm ${
@@ -578,26 +579,13 @@ function App({ session }: { session: Session }) {
 
       <div className="ticker" aria-hidden="true">
         <div className="ticker-track">
-          <div className="ticker-group">
-            <span>Log Your Can Every Day</span>
-            <b>*</b>
-            <span>Make Sleep Nervous</span>
-            <b>*</b>
-            <span>Climb The Fridge</span>
-            <b>*</b>
-            <span>Farm The Aura</span>
-            <b>*</b>
-          </div>
-          <div className="ticker-group" aria-hidden="true">
-            <span>Log Your Can Every Day</span>
-            <b>*</b>
-            <span>Make Sleep Nervous</span>
-            <b>*</b>
-            <span>Climb The Fridge</span>
-            <b>*</b>
-            <span>Farm The Aura</span>
-            <b>*</b>
-          </div>
+          {Array.from({ length: 4 }).map((_, group) => (
+            <div key={group} className="ticker-group">
+              {tickerItems.map((item) => (
+                <span key={`${group}-${item}`}>{item}<b>*</b></span>
+              ))}
+            </div>
+          ))}
         </div>
       </div>
 
