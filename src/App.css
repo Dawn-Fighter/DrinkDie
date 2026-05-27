@@ -911,6 +911,7 @@
   display: grid;
   min-height: 360px;
   place-items: center;
+  padding: 28px;
   border-radius: 36px;
   overflow: hidden;
   background:
@@ -922,6 +923,12 @@
   position: relative;
   width: 300px;
   height: 420px;
+}
+
+.aura-stage .hero-can-stack {
+  width: 270px;
+  height: 350px;
+  transform: translateY(6px);
 }
 
 .hero-can-card {
@@ -936,6 +943,26 @@
   padding: 22px 16px;
   cursor: pointer;
   transition: transform 240ms ease, box-shadow 240ms ease;
+}
+
+.aura-stage .hero-can-card {
+  width: 230px;
+  border-radius: 30px 30px 18px 18px;
+}
+
+.aura-stage .hero-can-card-back {
+  top: 22px;
+  left: 28px;
+}
+
+.aura-stage .chip-aura {
+  top: 0;
+  right: 0;
+}
+
+.aura-stage .chip-chaos {
+  bottom: 0;
+  left: 0;
 }
 
 .hero-can-card-diet-coke {
